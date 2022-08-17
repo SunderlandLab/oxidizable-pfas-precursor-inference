@@ -89,3 +89,4 @@ Python >= 3.7
 [numpy](https://numpy.org/doc/stable/user/install.html)  
 [pandas](https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html)  
 [emcee](https://emcee.readthedocs.io/en/stable/user/install/)  
+[pyyaml](https://pypi.org/project/PyYAML/)

@@ -1,9 +1,11 @@
 import numpy as np
 from functions import priors, likelihood
-from functions import BIGNEG
+from functions import BIGNEG, MINVAL, MAXVAL, INITMIN, INITMAX
 import emcee
 from emcee.autocorr import AutocorrError
 from emcee.moves import DESnookerMove
+from lib import Config
+from typing import Tuple
 
 
 class Tuner(object):
@@ -11,18 +13,19 @@ class Tuner(object):
     Tracks previous trials and generates new trials
     along with when to stop.
     """
-    def __init__(self, max_depth=3):
+
+    def __init__(self, max_depth: int=3) -> None:
         """max_depth determines how granular a search for
         the optimal parameter value is conducted.
         """
-        self.trial_queue = [0.5, 1.0, 1.5]
+        self.trial_queue = [.55]
         self.alphas = []
         self.acceptances = []
         self.good_alpha = None
         self.depth = 0
         self.max_depth = max_depth
 
-    def update(self, alpha, f_accept):
+    def update(self, alpha: float, f_accept: float) -> None:
         """Update record of trials and results."""
         self.alphas.append(alpha)
         self.acceptances.append(f_accept)
@@ -33,7 +36,7 @@ class Tuner(object):
                                                      self.acceptances))]
         self.alphas = sorted(self.alphas)
 
-    def get_trial(self):
+    def get_trial(self) -> Tuple[float,bool]:
         """What parameter value to try next?
 
         Returns: alpha, stopcode
@@ -54,7 +57,7 @@ class Tuner(object):
 
         return tri, False
 
-    def update_queue(self):
+    def update_queue(self) -> None:
         """Add further trials to the queue."""
         alps, accs = self.alphas, self.acceptances
         best = np.argmax(accs)
@@ -82,7 +85,7 @@ class Tuner(object):
         return self.alphas[best]
 
 
-def prob_func(x, b, mdls, berr, prior, PFOS, C8):
+def prob_func(x, config: Config, prior: str) -> float:
     """ log-probability of posterior.
 
     Takes current state vector and obs vector
@@ -92,30 +95,27 @@ def prob_func(x, b, mdls, berr, prior, PFOS, C8):
 
     Arguments:
     x (array) proposal
-    b (array) observations
-    mdls (array) observation MDLs
-    berr (array) obervation relative errors
-    prior (string) name of prior function to use
-    PFOS (tuple(float,float)) observed PFOS and PFOS MDL
-    C8 (Boolean) whether C8 was measured.
+    config (Config object) configuration info
+    prior (str) prior name
 
     Returns:
     (float) log-probability of proposal given observations
     """
 
     # log-posterior, so sum prior and likelihood
-    lp = priors[prior](x, PFOS=PFOS, b=b)
+    lp = priors[prior](x, config)
 
     if not np.isfinite(lp):
         return BIGNEG
-    ll = likelihood(x, b, mdls, berr, C8)
+    ll = likelihood(x, config)
     if not np.isfinite(ll):
         return BIGNEG
+#    print(ll,lp)
     return ll + lp
 
 
-def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
-                       C8=False, nwalkers=32,
+def sample_measurement(config: Config, prior:str ='AFFF',
+                       nwalkers=32,
                        Nincrement=2000, TARGET_EFFECTIVE_STEPS=2500,
                        MAX_STEPS=100000, MAX_DEPTH=3):
     """For a given measurement b, sample the posterior.
@@ -125,14 +125,10 @@ def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
     using 32 walkers doing Snooker moves.
 
     Arguments:
-    b (array) observations
-    mdls (array) observation MDLs
-    berr (array) observation relative errors
-    PFOS (tuple(float,float)) observed PFOS and PFOS MDL
-
+    config (Config object): contains the sample-specific configuration
+    
     Keyword arguments:
     prior (string; default 'AFFF') name of prior function to use
-    C8 (boolean; default False) whether C8 was measured
     nwalkers (int; default 32) number of samplers in ensemble
     Nincrement (int; default 2000) interations between status checks
     TARGET_EFFECTIVE_STEPS (int; default 2500) effective sample size goal
@@ -144,7 +140,7 @@ def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
     (emcee.EnsembleSampler) ensemble of samplers with results
     """
 
-    ndim = 9
+    ndim = len(config.possible_precursors)+1
     WEGOOD = False
 
     tuner = Tuner(max_depth=MAX_DEPTH)
@@ -159,25 +155,40 @@ def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
         sampler = emcee.EnsembleSampler(nwalkers,
                                         ndim,
                                         prob_func,
-                                        args=(b, mdls, berr, prior, PFOS, C8),
+                                        args=(config, prior),
                                         moves=[(DESnookerMove(alpha),
                                                 1.0)])
-        init = np.random.rand(nwalkers, ndim)
-        state = sampler.run_mcmc(init, Nincrement)
-        sampler.reset()
-        INIT = False
-        S = 1
-        while not INIT:
+        
+        # Make sure the sampling is initialized in reasonable values:
+        pfos_measured = config.pfos[0]
+        if (prior in ['unknown', 'unknown_jeffreys']) or (pfos_measured <= 0):
+            init_min0, init_max0 = INITMIN.get(prior,-1), INITMAX.get(prior,1)
+        else:
+            init_min0, init_max0 = np.log10(pfos_measured)+INITMIN.get(prior,-1), np.log10(pfos_measured)+INITMAX.get(prior,1)
+        INITIALIZED = False
+        # The sequence of definitions of "reasonable" to try
+        init_sequence = [(-1,-1),(-2,-2),(-1,1),(-1,0),(-2,0),(-4,-2)]
+        init_min, init_max, init_counter = init_min0 + 0, init_max0 + 0, 0
+        while not INITIALIZED:
             try:
-                state = sampler.run_mcmc(state, Nincrement)
-                INIT = True
-            except ValueError:
-                print('...')
-                state = sampler.run_mcmc(init, Nincrement*S)
-                S *= 1.5
+                init = np.random.rand(nwalkers, ndim)*(init_max - init_min) + init_min
+                state = sampler.run_mcmc(init, Nincrement*5)
+                INITIALIZED = True
+            except ValueError: # sometimes an unlucky init will cause infinite values
+                # Change the space of initial values you consider reasonable if it doesn't work
+                if init_counter > len(init_sequence):
+                    raise ValueError("Can't seem to find initial conditions allowed by the prior...")
+                init_min += init_sequence[init_counter][0]
+                init_max += init_sequence[init_counter][1]
+                init_counter += 1
+        sampler.reset()
+        S = 1
+        state = sampler.run_mcmc(
+            state, Nincrement, skip_initial_state_check=True)
 
         f_accept = np.mean(sampler.acceptance_fraction)
-        print(f'acceptance rate is {np.mean(f_accept):.2f} when alpha is {alpha}')
+        print(
+            f'acceptance rate is {np.mean(f_accept):.2f} when alpha is {alpha}')
         tuner.update(alpha, f_accept)
 
     print(f'Sampling posterior in {Nincrement}-iteration increments.')
@@ -187,7 +198,8 @@ def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
     Nindep = 1
     sampler.reset()
     while (not WEGOOD) and (count < MAX_STEPS):
-        state = sampler.run_mcmc(state, Nincrement)
+        state = sampler.run_mcmc(
+            state, Nincrement, skip_initial_state_check=True)
         f_accept = np.mean(sampler.acceptance_fraction)
         count += Nincrement
         try:
@@ -206,7 +218,8 @@ def sample_measurement(b, mdls, berr, PFOS, prior='AFFF',
         if Nindep < prev_Nindep:
             print("WARNING: Number of independent samples decreasing!")
 
-        state = sampler.run_mcmc(state, Nincrement)
+        state = sampler.run_mcmc(
+            state, Nincrement, skip_initial_state_check=True)
         f_accept = np.mean(sampler.acceptance_fraction)
         count += Nincrement
         try:
