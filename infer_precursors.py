@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 from sampling import sample_measurement
 from lib import Config
+import warnings
+
+warnings.filterwarnings('ignore')
 
 # Command line arguments
 parser = argparse.ArgumentParser(

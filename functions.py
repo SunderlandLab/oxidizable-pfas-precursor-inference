@@ -83,8 +83,8 @@ def likelihood(x, config: Config) -> float:
                 obs = np.log10(b[i])
                 logprob += -((mod[i] - obs) / toterr[i])**2
 
-    if np.isnan(logprob):
-        print(x_p, A)
+    # if np.isnan(logprob):
+        # print(x_p, A)
     return logprob
 
 def prior_AFFF(x, config: Config) -> float:
@@ -295,8 +295,7 @@ def prior_AFFF_impacted(x, config: Config) -> float:
 
     return logprob
 
-
-def prior_AFFF_impacted_targeted(x, config: Config) -> float:
+def prior_AFFF_impacted_jeffreys(x, config: Config) -> float:
     """Prior log-probability of proposal x.
 
     Prior used for environmental samples where predominant PFAS source
@@ -445,7 +444,7 @@ def prior_unknown(x, config: Config) -> float:
             cost += BIGNEG
     return cost
 
-def prior_jeffreys(x, config: Config) -> float:
+def prior_unknown_jeffreys(x, config: Config) -> float:
     """Prior log-probability of proposal x.
 
     Prior used for environmental samples where predominant PFAS source
@@ -514,7 +513,7 @@ def prior_jeffreys(x, config: Config) -> float:
 # Collect priors by name for easy lookup
 priors = {'AFFF': prior_AFFF,
           'AFFF_jeffreys': prior_AFFF_jeffreys,
-          'AFFF_impacted': prior_AFFF_impacted, 
-          'AFFF_impacted_targeted': prior_AFFF_impacted_targeted, 
+          'AFFF_impacted': prior_AFFF_impacted,
+          'AFFF_impacted_jeffreys': prior_AFFF_impacted_jeffreys,
           'unknown': prior_unknown,
-          'unknown_jeffreys': prior_jeffreys}
+          'unknown_jeffreys': prior_unknown_jeffreys}
