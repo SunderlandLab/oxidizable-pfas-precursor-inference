@@ -1,0 +1,38 @@
+possible_precursors:
+ - "4:2 FT"
+ - "6:2 FT"
+ - "8:2 FT"
+ - "C4 ECF"
+ - "C5 ECF"
+ - "C6 ECF"
+ - "C7 ECF"
+ - "C8 ECF"
+prior_name: "unknown_jeffreys"
+jeffreys_variance: 5
+
+# TOP assay yields of representative n:2 FT and ECF precursors
+# reported in the literature
+# Average of n:2 FTs reported in Houtz and Sedlak Table 1, 2012
+# and Martin et al. 2019 Table 1
+x_ft : [
+    0.0245, 0.1850, 0.2874, 0.1943, 0.1425, 0.0867, 0, 0
+]
+# Standard deviation of average n:2 FTs reported in Houtz
+# and Sedlak Table 1, 2012 and Martin et al. 2019 Table 1
+err_ft : [
+    0.0065, 0.0721, 0.0435, 0.0207, 0.0171, 0.0252, 0, 0
+]
+# Average of ECF precursors reported in Houtz and Sedlak 2012 Table 1,
+# Martin et al. 2019 Table 1, Janda et al. 2019 Table 1,
+# and internal data of PFHxSAm (88% yield to Cn-1)
+# and PFHxSAmS (87% yield to Cn-1)
+x_ecf : [
+    0, 0.869, 0.0085, 0, 0, 0, 0, 0
+]
+# Standard deviation of average ECF precursors reported in Houtz
+# and Sedlak 2012 Table 1, Martin et al. 2019 Table 1, Janda et al. 2019
+# Table 1, and internal data of PFHxSAm (88% yield to Cn-1)
+# and PFHxSAmS (87% yield to Cn-1)
+err_ecf : [
+    0, 0.1144, 0.0089, 0, 0, 0, 0, 0
+]
