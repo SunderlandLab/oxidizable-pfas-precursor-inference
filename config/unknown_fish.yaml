@@ -1,0 +1,35 @@
+possible_precursors:
+ - "4:2 FT"
+ - "5:3 FT"
+ - "6:2 FT"
+ - "7:3 FT"
+ - "8:2 FT"
+ - "9:3 FT"
+ - "10:2 FT"
+ - "C4 ECF"
+ - "C5 ECF"
+ - "C6 ECF"
+ - "C7 ECF"
+ - "C8 ECF"
+ - "C9 ECF"
+ - "C10 ECF"
+prior_name: "unknown_jeffreys"
+jeffreys_variance: 4
+# x_ft = [n, n-1, n-2, n-3, n-4, n-5, n-6, n-7]
+x_ft : [0.0568, 0.2290, 0.3469, 0.2094, 0.1336, 0.0811, 0.0200, 0.0100]
+
+# Standard deviation of average n:2 FTs reported in Martin et al., 2019, Talanta; Houtz & Sedlak, 2012, ES&T;
+# Simonnet-Laprade et al., 2019, ESPI; Gockener et al., 2020, JAFC; Wang et al., 2021, ES&T;
+# and internal Heidi TOP fish analysis (20210222, 20210303)
+err_ft : [0.0586, 0.1100, 0.0986, 0.0488, 0.0330, 0.0468, 0.0212, 0.0141]
+
+# Average of ECF precursors reported in Martin et al., 2019, Talanta; Houtz & Sedlak, 2012, ES&T;
+# Simonnet-Laprade et al., 2019, ESPI; Gockener et al., 2020, JAFC; Wang et al., 2021, ES&T;
+# Janda et al., 2019, ESPI; and internal Bridger (PFHxSAm/S) and Heidi TOP fish analyses (20210222, 20210303, 20210323)
+# x_ecf = [n, n-1, n-2, n-3, n-4, n-5, n-6, n-7]
+x_ecf : [0.0043, 0.8620, 0.0262, 0.0260, 0.0061, 0.0011, 0.0900, 0]
+
+# Standard deviation of average ECF precursors reported in Martin et al., 2019, Talanta; Houtz & Sedlak, 2012, ES&T;
+# Simonnet-Laprade et al., 2019, ESPI; Gockener et al., 2020, JAFC; Wang et al., 2021, ES&T;
+# Janda et al., 2019, ESPI; and internal Bridger (PFHxSAm/S) and Heidi TOP fish analyses (20210222, 20210303, 20210323)
+err_ecf : [0.0126, 0.1600, 0.0338, 0.0645, 0.0226, 0.0058, 0, 0]

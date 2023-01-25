@@ -18,6 +18,7 @@ available).
   * prior_AFFF_impacted_jeffreys – used for AFFF impacted water
   * prior_unknown – used for water with unknown PFAS point sources ([Ruyle et al. 2021b](http://dx.doi.org/10.1021/acs.est.0c07296))  
   * prior_unknown_jeffreys – used for water with unknown PFAS point sources ([Ruyle et al. 2021b](http://dx.doi.org/10.1021/acs.est.0c07296))  
+  * prior_unknown_fish - used for fish with unknown PFAS sources ([Pickard et al. 2022](http://dx.doi.org/10.1021/acs.est.2c03734))
 
 These priors can be used as a template and adapted for other specific purposes.
 Current precursor chainlength that can be inferred include n:2 FT (n = 4,6,8,10),
@@ -40,7 +41,7 @@ presented in [Ruyle et al. 2021a](http://dx.doi.org/10.1021/acs.estlett.0c00798)
 Ruyle, B. J.; Thackray, C. P.; McCord, J. P.; Strynar, M. J.; Mauge-Lewis, K. A.; Fenton, S. E.; Sunderland, E. M. Reconstructing the Composition of Per- and Polyfluoroalkyl Substances (PFAS) in Contemporary Aqueous Film Forming Foams. Environ. Sci. Technol. Lett. 2021, 8(1), 59-65. [https://doi.org/10.1021/acs.estlett.0c00798](http://dx.doi.org/10.1021/acs.estlett.0c00798).
 
 # Command line options
-usage: `infer_precursors.py [-h] [-d FILENAME] [-o OUTFILE_STEM] [-t TARGET] [-m MAX_STEPS] [-D MAX_DEPTH] istart [iend]`
+usage: `python infer_precursors.py [-h] [-d FILENAME] [-o OUTFILE_STEM] [-t TARGET] [-m MAX_STEPS] [-D MAX_DEPTH] istart [iend]`
 
 Sample posterior for precursors.
 
@@ -112,7 +113,8 @@ reported by [Ruyle et al. 2021a](http://dx.doi.org/10.1021/acs.estlett.0c00798) 
 Cod, Massachusetts, USA reported by [Ruyle et al. 2021b](http://dx.doi.org/10.1021/acs.est.0c07296)
 * 'Tokranov_Ashumet_Pond_lake_shadow.csv' which contains TOP assay data from Ashumet Pond and downgradient groundwater on Cape
 Cod, Massachusetts, USA reported by [Tokranov et al. 2022](http://xlink.rsc.org/?DOI=D1EM00329A)
-
+* 'Pickard_NH_fish.csv' which contains TOP assay data from fish from New Hampshire surface waters 
+reported by [Pickard et al. 2022](http://dx.doi.org/10.1021/acs.est.2c03734)
 # Python dependencies
 Python >= 3.7  
 [numpy](https://numpy.org/doc/stable/user/install.html)  
