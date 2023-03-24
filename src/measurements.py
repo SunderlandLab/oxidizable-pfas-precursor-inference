@@ -87,7 +87,6 @@ class Measurements:
                 this_MDL = measured_values.get(f'{targ} MDL',None)
                 if this_MDL is None:
                     this_MDL = measured_values.get(f'{targ}MDL',None)
-                assert (this_MDL is not None),  f'{targ} MDL missing'
 
                 this_err = measured_values.get(f'{targ} err', None)
                 if this_err is None:
