@@ -7,7 +7,9 @@ ALL_TARGETED = ['4:2 FT', '5:3 FT', '6:2 FT', '7:3 FT', '8:2 FT',
                 'C7 ECF', 'C8 ECF', 'C9 ECF', 'C10 ECF']
 ALL_PFCA = [f'C{x}' for x in range(20)]
 ALL_KEYS = ALL_PFCA + [f'{x}pre' for x in ALL_PFCA] + [f'{x}post' for x in ALL_PFCA] \
-            + [f'{x}err' for x in ALL_PFCA] + [f'{x}MDL' for x in ALL_PFCA+ALL_TARGETED] \
+            + [f'{x}err' for x in ALL_PFCA] + [f'{x} err' for x in ALL_PFCA] \
+            + [f'{x}MDL' for x in ALL_PFCA+ALL_TARGETED] \
+                + [f'{x} MDL' for x in ALL_PFCA+ALL_TARGETED] \
             + ALL_TARGETED + [f'{x}meas' for x in ALL_TARGETED] \
             + ['PFOS', 'PFOSerr', 'PFOSpre', 'PFOSpost', 'PFOSMDL', 'CXerr']
 
@@ -82,10 +84,14 @@ class Measurements:
         for targ in ALL_TARGETED:
             this_val = measured_values.get(targ, None)
             if this_val is not None:
-                this_MDL = measured_values.get(f'{targ}MDL',None)
+                this_MDL = measured_values.get(f'{targ} MDL',None)
+                if this_MDL is None:
+                    this_MDL = measured_values.get(f'{targ}MDL',None)
                 assert (this_MDL is not None),  f'{targ} MDL missing'
 
-                this_err = measured_values.get(f'{targ}err', None)
+                this_err = measured_values.get(f'{targ} err', None)
+                if this_err is None:
+                    this_err = measured_values.get(f'{targ}err',None)
                 if this_err is None:
                     this_err = measured_values.get(f'CXerr',None)
                 assert (this_err is not None), f'{targ} error or generic CXerr must be provided'
