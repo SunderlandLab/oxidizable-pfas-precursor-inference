@@ -61,10 +61,14 @@ class Measurements:
             this_post = measured_values.get(f'{chain}post',None)
             this_val = measured_values.get(chain, None)
             if ((this_pre is not None) and (this_post is not None)) or (this_val is not None):
-                this_MDL = measured_values.get(f'{chain}MDL',None)
+                this_MDL = measured_values.get(f'{chain} MDL',None)
+                if this_MDL is None:
+                    this_MDL = measured_values.get(f'{chain}MDL',None)
                 assert (this_MDL is not None),  f'{chain} MDL missing'
 
-                this_err = measured_values.get(f'{chain}err', None)
+                this_err = measured_values.get(f'{chain} err', None)
+                if this_err is None:
+                    this_err = measured_values.get(f'{chain}err',None)
                 if this_err is None:
                     this_err = measured_values.get(f'CXerr',None)
                 assert (this_err is not None), f'{chain} error or generic CXerr must be provided'
