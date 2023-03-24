@@ -23,7 +23,7 @@ class PrecursorProblem(Problem):
         return (self.lower_bounds, self.upper_bounds)
 
 def sample_measurement(config: Config, measurments, prior_name, Nincrement, 
-                        TARGET_EFFECTIVE_STEPS, MAX_STEPS, MAX_DEPTH):
+                        TARGET_EFFECTIVE_STEPS, MAX_STEPS, MAX_DEPTH, alpha=0.3):
     precursors = config.possible_precursors
     print(config)
     print(measurments)
@@ -42,6 +42,6 @@ def sample_measurement(config: Config, measurments, prior_name, Nincrement,
     sampler = MCMCSampler(max_steps=MAX_STEPS, Nwalkers=2,
                           target_effective_steps=TARGET_EFFECTIVE_STEPS,
                           Nincrement=Nincrement)
-    posterior = sampler.sample(problem=problem)
+    posterior = sampler.sample(problem=problem, alpha=alpha)
 
     return posterior

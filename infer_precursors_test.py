@@ -38,6 +38,9 @@ parser.add_argument('-m', '--max-steps', dest='MAX_STEPS',
 parser.add_argument('-D', '--max-depth', dest='MAX_DEPTH',
                     action='store', default=3, type=int,
                     help='Maximum depth of windowing in sampler tuning.')
+parser.add_argument('-a', '--alpha', dest='alpha',
+                    action='store', default=0.3, type=float,
+                    help='Alpha for sampler.')
 
 args = parser.parse_args()
 if args.IEND is None:
@@ -63,7 +66,8 @@ for bi in range(args.ISTART, args.IEND+1):
                                  Nincrement=1000,
                                  TARGET_EFFECTIVE_STEPS=args.TARGET,
                                  MAX_STEPS=args.MAX_STEPS,
-                                 MAX_DEPTH=args.MAX_DEPTH)
+                                 MAX_DEPTH=args.MAX_DEPTH,
+                                 alpha=args.alpha)
 
     # Save sampling output to disk
     trajectory = posterior.samples[:, :-1]
