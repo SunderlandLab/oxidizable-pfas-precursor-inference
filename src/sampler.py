@@ -144,7 +144,7 @@ class MCMCSampler:
     """Markov chain Monte Carlo."""
 
     Nwalkers: int = 2
-    Nincrement: int = 2000
+    Nincrement: int = 5000
     target_effective_steps: int = 2500
     max_steps: int = 50000
     default_alpha: float = 0.3
