@@ -39,7 +39,7 @@ parser.add_argument('-D', '--max-depth', dest='MAX_DEPTH',
                     action='store', default=3, type=int,
                     help='Maximum depth of windowing in sampler tuning.')
 parser.add_argument('-a', '--alpha', dest='alpha',
-                    action='store', default=0.3, type=float,
+                    action='store', default=-1, type=float,
                     help='Alpha for sampler.')
 
 args = parser.parse_args()

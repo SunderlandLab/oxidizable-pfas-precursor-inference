@@ -1,6 +1,6 @@
 from .config import Config
 from .measurements import Measurements
-from .sampler import MCMCSampler
+from .sampler import MCMCSampler, Tuner
 from .model import ModelLikelihood
 from .core import Problem, Distribution
 from .priors import prior_lookup
@@ -23,7 +23,7 @@ class PrecursorProblem(Problem):
         return (self.lower_bounds, self.upper_bounds)
 
 def sample_measurement(config: Config, measurments, prior_name, Nincrement, 
-                        TARGET_EFFECTIVE_STEPS, MAX_STEPS, MAX_DEPTH, alpha=0.3):
+                        TARGET_EFFECTIVE_STEPS, MAX_STEPS, MAX_DEPTH, alpha=-1):
     precursors = config.possible_precursors
     print(config)
     print(measurments)
@@ -42,6 +42,9 @@ def sample_measurement(config: Config, measurments, prior_name, Nincrement,
     sampler = MCMCSampler(max_steps=MAX_STEPS, Nwalkers=2,
                           target_effective_steps=TARGET_EFFECTIVE_STEPS,
                           Nincrement=Nincrement)
+    tuner = Tuner(max_depth=MAX_DEPTH)
+    if alpha < 0:
+        alpha = sampler.tune_alpha(problem=problem, tuner=tuner)
     posterior = sampler.sample(problem=problem, alpha=alpha)
 
     return posterior
