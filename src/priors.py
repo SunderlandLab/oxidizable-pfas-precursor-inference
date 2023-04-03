@@ -39,7 +39,7 @@ class Prior(ABC):
                 targ.append(t)
                 targ_inds.append(i)
         self.targeted_concentrations = np.array(targ)
-        self.targeted_concentrations = np.array(targ_inds)
+        self.targeted_indices = np.array(targ_inds)
 
 # include upper/lower bounds in prior
 
@@ -186,6 +186,52 @@ class UnknownJeffreysPrior(Prior):
         if params[-1] < MINVAL:
             logprob += BIGNEG
         if params[-1] > MAXVAL:
+            logprob += BIGNEG
+
+        # make sure the targeted measurements line up with the right parameters
+        for i, tp in zip(targeted_indices, targetprec):
+            xi = x_p[i]
+            if xi < tp:
+                # Prevent solutions where infered concentration < targeted
+                # precursor concentrations
+                logprob += BIGNEG
+        return logprob
+
+class BiotaPrior(Prior):
+    def __call__(self, params: np.ndarray):
+        logprob = 0
+
+        targetprec = self.targeted_concentrations
+        targeted_indices = self.targeted_indices
+
+        var = self.jeffreys_variance
+        if var is None:
+            raise ValueError('Please define jeffreys_variance in yaml config')
+
+        meassum = self.measured_sum
+
+        jeffreys_min = np.log10(meassum) - var
+
+        x_p = 10**params[:-1]
+        totp = np.sum(x_p)
+
+        # Prevent inference from infering solutions with more than 10x the
+        # measured mass
+        if totp/meassum <= 1:
+            logprob += BIGNEG
+        elif totp/meassum >= 10:
+            logprob += BIGNEG
+
+        for i, xi in enumerate(params[:-1]):
+            xi_lin = 10**xi
+            if xi < jeffreys_min:
+                # don't let it waste time wandering arbitrarily low
+                logprob += BIGNEG
+            if (xi_lin/meassum) >= 10:  # or high
+                logprob += BIGNEG
+        if params[-1] < MINVAL:
+            logprob += BIGNEG
+        if params[-1] > 2:
             logprob += BIGNEG
 
         # make sure the targeted measurements line up with the right parameters
@@ -376,4 +422,5 @@ prior_lookup = {"unknown_jeffreys": UnknownJeffreysPrior,
                 "AFFF": AFFFPrior,
                 "AFFF_impacted": AFFFImpactedPrior,
                 "AFFF_impacted_jeffreys": AFFFImpactedJeffreysPrior,
+                "biota": BiotaPrior,
                 }
