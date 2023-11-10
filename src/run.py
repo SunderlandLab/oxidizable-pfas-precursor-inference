@@ -25,8 +25,8 @@ class PrecursorProblem(Problem):
 def sample_measurement(config: Config, measurments, prior_name, Nincrement, 
                         TARGET_EFFECTIVE_STEPS, MAX_STEPS, MAX_DEPTH, alpha=-1):
     precursors = config.possible_precursors
-    print(config)
-    print(measurments)
+    # print(config)
+    # print(measurments)
     likelihood_model = ModelLikelihood(measurements=measurments, config=config)
     prior = prior_lookup[prior_name](precursors=precursors, measurements=measurments,
                                     jeffreys_variance=config.jeffreys_variance)

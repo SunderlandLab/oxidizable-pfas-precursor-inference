@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Protocol, Tuple
 from .core import Problem, UniformBounded
+from .posterior import Posterior
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -9,7 +10,6 @@ import emcee
 from emcee.autocorr import AutocorrError
 from emcee.moves import DESnookerMove, GaussianMove
 
-import matplotlib.pyplot as plt
 
 
 # class Tuner(Protocol):
@@ -96,39 +96,6 @@ class Tuner(object):
         """Get most value of most successful trial."""
         best = np.argmax(self.acceptances)
         return self.alphas[best]
-
-
-@dataclass
-class Posterior:
-    n_dimensions: int
-    samples: np.ndarray
-
-    def show_trace(self, **kwargs):
-        plt.figure()
-        for n in range(self.n_dimensions):
-            plt.subplot(2, 3, n+1)
-            plt.plot(self.samples[:, n], **kwargs)
-
-    def show_hist(self, **kwargs):
-        plt.figure()
-        for n in range(self.n_dimensions):
-            plt.subplot(2, 3, n+1)
-            plt.hist(self.samples[:, n], **kwargs)
-
-    def save(self, filename: str):
-        """Save posterior to file."""
-        ...
-
-    @classmethod
-    def from_emcee(cls, emcee_sampler: emcee.EnsembleSampler):
-        return Posterior(n_dimensions=emcee_sampler.ndim, samples=emcee_sampler.flatchain)
-
-    @classmethod
-    def from_npy(cls, filename: str):
-        samples = np.load(filename)
-        assert len(
-            samples.shape) == 2, f'File {filename} wrong shape for posterior'
-        return Posterior(n_dimensions=samples.shape[1], samples=samples)
 
 
 class Sampler(Protocol):
@@ -227,7 +194,7 @@ class MCMCSampler:
         if self.max_steps <= count:
             print("WARNING: maximum number of iterations reached! Terminating.")
         print('SAMPLE DONE')
-        return Posterior.from_emcee(mcsampler)
+        return Posterior.from_emcee(mcsampler, labels=problem.state_vector_labels, model=problem.likelihood)
 
     def tune_alpha(self, problem: Problem, tuner: Tuner, 
                     movetype='DESnooker') -> float:

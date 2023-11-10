@@ -1,16 +1,20 @@
 from typing import List, Dict
 from dataclasses import dataclass
+import pprint
+pp = pprint.PrettyPrinter(indent=4, depth=2)
+
 import numpy as np
 
 ALL_TARGETED = ['4:2 FT', '5:3 FT', '6:2 FT', '7:3 FT', '8:2 FT',
                 '9:3 FT', '10:2 FT', 'C4 ECF', 'C5 ECF', 'C6 ECF',
                 'C7 ECF', 'C8 ECF', 'C9 ECF', 'C10 ECF']
+ALL_TARGETED = ALL_TARGETED + [f'{x}meas' for x in ALL_TARGETED]
 ALL_PFCA = [f'C{x}' for x in range(20)]
 ALL_KEYS = ALL_PFCA + [f'{x}pre' for x in ALL_PFCA] + [f'{x}post' for x in ALL_PFCA] \
             + [f'{x}err' for x in ALL_PFCA] + [f'{x} err' for x in ALL_PFCA] \
             + [f'{x}MDL' for x in ALL_PFCA+ALL_TARGETED] \
                 + [f'{x} MDL' for x in ALL_PFCA+ALL_TARGETED] \
-            + ALL_TARGETED + [f'{x}meas' for x in ALL_TARGETED] \
+            + ALL_TARGETED  \
             + ['PFOS', 'PFOSerr', 'PFOSpre', 'PFOSpost', 'PFOSMDL', 'CXerr']
 
 
@@ -32,10 +36,10 @@ class Measurement:
         self.MDL = MDL
 
     def __str__(self):
-        return f'Measurement(value={self.value}, error={self.error}, MDL={self.MDL}'
+        return f'Measurement(value={self.value}, error={self.error}, MDL={self.MDL})'
 
     def __repr__(self):
-        return f'Measurement(value={self.value}, error={self.error}, MDL={self.MDL}'
+        return f'Measurement(value={self.value}, error={self.error}, MDL={self.MDL})'
 
 @dataclass
 class Measurements:
@@ -44,6 +48,15 @@ class Measurements:
     PFOS: Measurement
     associated_config: str
 
+    def print(self):
+        print('PFCAs:', end=' ')
+        pp.pprint(self.PFCAs)
+        print('targeted_precursors:', end=' ')
+        pp.pprint(self.targeted_precursors)
+        print('PFOS:', end=' ')
+        pp.pprint(self.PFOS)
+        print('associated_config:', end=' ')
+        pp.pprint(self.associated_config)
 
     @classmethod
     def from_row(cls, dfrow):
@@ -91,6 +104,8 @@ class Measurements:
                 this_err = measured_values.get(f'{targ} err', None)
                 if this_err is None:
                     this_err = measured_values.get(f'{targ}err',None)
+                if this_err is None:
+                    this_err = measured_values.get(f'{targ.rstrip("meas")}err',None)
                 if this_err is None:
                     this_err = measured_values.get(f'CXerr',None)
                 assert (this_err is not None), f'{targ} error or generic CXerr must be provided'

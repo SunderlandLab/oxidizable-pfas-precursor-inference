@@ -93,7 +93,7 @@ class AFFFPrior(Prior):
 
         return logprob
 
-class AFFFPrior(Prior):
+class AFFFJeffreysPrior(Prior):
     def __call__(self, params: np.ndarray) -> float:
         logprob = 0
 
@@ -171,7 +171,7 @@ class UnknownJeffreysPrior(Prior):
 
         # Prevent inference from infering solutions with more than 10x the
         # measured mass
-        if totp/meassum <= 1:
+        if totp/meassum <= 0.7:
             logprob += BIGNEG
         elif totp/meassum >= 10:
             logprob += BIGNEG
@@ -191,7 +191,7 @@ class UnknownJeffreysPrior(Prior):
         # make sure the targeted measurements line up with the right parameters
         for i, tp in zip(targeted_indices, targetprec):
             xi = x_p[i]
-            if xi < tp*0.3:
+            if xi < tp.value*0.7:
                 # Prevent solutions where infered concentration < targeted
                 # precursor concentrations
                 logprob += BIGNEG
@@ -217,7 +217,7 @@ class BiotaPrior(Prior):
 
         # Prevent inference from infering solutions with more than 10x the
         # measured mass
-        if totp/meassum <= 1:
+        if totp/meassum <= 0.7:
             logprob += BIGNEG
         elif totp/meassum >= 10:
             logprob += BIGNEG
@@ -237,7 +237,7 @@ class BiotaPrior(Prior):
         # make sure the targeted measurements line up with the right parameters
         for i, tp in zip(targeted_indices, targetprec):
             xi = x_p[i]
-            if xi < tp:
+            if xi < tp*0.7:
                 # Prevent solutions where infered concentration < targeted
                 # precursor concentrations
                 logprob += BIGNEG
@@ -258,7 +258,7 @@ class UnknownPrior(Prior):
 
         # Prevent inference from infering solutions with more than 10x the
         # measured mass
-        if totp/meassum <= 1:
+        if totp/meassum <= 0.7:
             logprob += BIGNEG
         elif totp/meassum >= 10:
             logprob += BIGNEG
@@ -278,7 +278,7 @@ class UnknownPrior(Prior):
         # make sure the targeted measurements line up with the right parameters
         for i, tp in zip(targeted_indices, targetprec):
             xi = x_p[i]
-            if xi < tp:
+            if xi < tp*0.7:
                 # Prevent solutions where infered concentration < targeted
                 # precursor concentrations
                 logprob += BIGNEG
@@ -322,7 +322,7 @@ class AFFFImpactedPrior(Prior):
 
         # Prevent inference from infering solutions with more than 10x the
         # measured mass (i.e. we don't expect a recovery ≤ 10%)
-        if totp/meassum <= 1:
+        if totp/meassum <= 0.7:
             logprob += BIGNEG
         elif totp/meassum >= 10:
             logprob += BIGNEG
@@ -391,7 +391,7 @@ class AFFFImpactedJeffreysPrior(Prior):
 
         # Prevent inference from infering solutions with more than 10x the
         # measured mass (i.e. we don't expect a recovery ≤ 10%)
-        if totp/meassum <= 1:
+        if totp/meassum <= 0.7:
             logprob += BIGNEG
         elif totp/meassum >= 10:
             logprob += BIGNEG

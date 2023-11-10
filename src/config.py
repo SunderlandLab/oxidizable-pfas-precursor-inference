@@ -1,6 +1,8 @@
 from typing import List, Dict
 import yaml
 from dataclasses import dataclass
+import pprint
+pp = pprint.PrettyPrinter(indent=4, depth=2)
 
 
 @dataclass
@@ -15,6 +17,9 @@ class Config:
     specific_yield_overrides: Dict[str, float]
     specific_error_overrides: Dict[str, float]
 
+    def print(self):
+        print('Config object:')
+        pp.pprint(self.__dict__)
 
     @classmethod
     def from_yaml(cls, filename):
@@ -29,3 +34,4 @@ class Config:
                     specific_yield_overrides=ym.get('specific_yields',{}),
                     specific_error_overrides=ym.get('specific_errors', {})
                     )
+
