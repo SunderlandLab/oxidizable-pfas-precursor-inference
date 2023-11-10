@@ -31,7 +31,7 @@ def sample_measurement(config: Config, measurments, prior_name, Nincrement,
     prior = prior_lookup[prior_name](precursors=precursors, measurements=measurments,
                                     jeffreys_variance=config.jeffreys_variance)
     n_dimensions = len(precursors) + 1
-    lower_bounds, upper_bounds = np.zeros(n_dimensions)-4, np.zeros(n_dimensions)+4
+    lower_bounds, upper_bounds = np.zeros(n_dimensions)-4, np.zeros(n_dimensions)+np.log10(prior.measured_sum)
     problem = PrecursorProblem(n_dimensions=n_dimensions,
                                 prior=prior,
                                 likelihood=likelihood_model,

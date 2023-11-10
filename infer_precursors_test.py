@@ -63,7 +63,7 @@ for bi in range(args.ISTART, args.IEND+1):
     # Run MCMC ensemble to sample posterior
     posterior = sample_measurement(config, measurements,
                                  prior_name=prior_name,
-                                 Nincrement=5000,
+                                 Nincrement=2500,
                                  TARGET_EFFECTIVE_STEPS=args.TARGET,
                                  MAX_STEPS=args.MAX_STEPS,
                                  MAX_DEPTH=args.MAX_DEPTH,

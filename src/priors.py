@@ -181,17 +181,17 @@ class UnknownJeffreysPrior(Prior):
             if xi < jeffreys_min:
                 # don't let it waste time wandering arbitrarily low
                 logprob += BIGNEG
-            if (xi_lin/meassum) >= 10:  # or high
-                logprob += BIGNEG
-        if params[-1] < MINVAL:
+            # if (xi_lin/meassum) >= 10:  # or high
+                # logprob += BIGNEG
+        if params[-1] < -2:
             logprob += BIGNEG
-        if params[-1] > MAXVAL:
+        if params[-1] > 1:
             logprob += BIGNEG
 
         # make sure the targeted measurements line up with the right parameters
         for i, tp in zip(targeted_indices, targetprec):
             xi = x_p[i]
-            if xi < tp:
+            if xi < tp*0.3:
                 # Prevent solutions where infered concentration < targeted
                 # precursor concentrations
                 logprob += BIGNEG

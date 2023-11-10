@@ -104,11 +104,15 @@ class Measurements:
         except KeyError:
             raise KeyError("Config file location must be provided.")
 
-        PFOS = Measurement(error=measured_values.get('PFOSerr', measured_values.get('CXerr', None)),
+        try:
+            PFOS = Measurement(error=measured_values.get('PFOSerr', measured_values.get('CXerr', None)),
                             MDL=measured_values.get('PFOSMDL', None),
                             value=measured_values.get('PFOS',None),
                             post_value=measured_values.get('PFOSpost',None),
                             pre_value=measured_values.get('PFOSpre',None))
+        except ValueError:
+            print("PFOS measurement not found.")
+            PFOS = Measurement(0,0,0)
 
 
         return Measurements(PFCAs=pfcas_measured, targeted_precursors=targeted_precursors,
