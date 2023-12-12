@@ -173,7 +173,7 @@ class UnknownJeffreysPrior(Prior):
         # measured mass
         if totp/meassum <= 0.7:
             logprob += BIGNEG
-        elif totp/meassum >= 10:
+        elif totp/meassum >= 2:
             logprob += BIGNEG
 
         for i, xi in enumerate(params[:-1]):
@@ -219,7 +219,7 @@ class BiotaPrior(Prior):
         # measured mass
         if totp/meassum <= 0.7:
             logprob += BIGNEG
-        elif totp/meassum >= 10:
+        elif totp/meassum >= 2:
             logprob += BIGNEG
 
         for i, xi in enumerate(params[:-1]):
@@ -227,7 +227,7 @@ class BiotaPrior(Prior):
             if xi < jeffreys_min:
                 # don't let it waste time wandering arbitrarily low
                 logprob += BIGNEG
-            if (xi_lin/meassum) >= 10:  # or high
+            if (xi_lin/meassum) >= 2:  # or high
                 logprob += BIGNEG
         if params[-1] < MINVAL:
             logprob += BIGNEG
@@ -260,7 +260,7 @@ class UnknownPrior(Prior):
         # measured mass
         if totp/meassum <= 0.7:
             logprob += BIGNEG
-        elif totp/meassum >= 10:
+        elif totp/meassum >= 2:
             logprob += BIGNEG
 
         for i, xi in enumerate(params[:-1]):
@@ -268,7 +268,7 @@ class UnknownPrior(Prior):
             if xi < MINVAL:
                 # don't let it waste time wandering arbitrarily low
                 logprob += BIGNEG
-            if (xi_lin/meassum) >= 10:  # or high
+            if (xi_lin/meassum) >= 2:  # or high
                 logprob += BIGNEG
         if params[-1] < MINVAL:
             logprob += BIGNEG
@@ -324,7 +324,7 @@ class AFFFImpactedPrior(Prior):
         # measured mass (i.e. we don't expect a recovery ≤ 10%)
         if totp/meassum <= 0.7:
             logprob += BIGNEG
-        elif totp/meassum >= 10:
+        elif totp/meassum >= 2:
             logprob += BIGNEG
         else:
             logprob += 0
@@ -393,7 +393,7 @@ class AFFFImpactedJeffreysPrior(Prior):
         # measured mass (i.e. we don't expect a recovery ≤ 10%)
         if totp/meassum <= 0.7:
             logprob += BIGNEG
-        elif totp/meassum >= 10:
+        elif totp/meassum >= 2:
             logprob += BIGNEG
         else:
             logprob += 0

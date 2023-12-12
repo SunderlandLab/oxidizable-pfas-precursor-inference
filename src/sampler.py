@@ -113,7 +113,7 @@ class MCMCSampler:
     Nwalkers: int = 2
     Nincrement: int = 5000
     target_effective_steps: int = 2500
-    max_steps: int = 50000
+    max_steps: int = 150000
     default_alpha: float = 0.3
 
     def sample(self, problem: Problem, alpha: float = -1, movetype='DESnooker') -> Posterior:
@@ -192,7 +192,9 @@ class MCMCSampler:
             if Nindep > self.target_effective_steps:
                 WEGOOD = True
         if self.max_steps <= count:
-            print("WARNING: maximum number of iterations reached! Terminating.")
+            print("WARNING: maximum number of iterations reached! Terminating. Something might have gone wrong.")
+        if np.isinf(np.mean(mcsampler.flatchain)):
+            print("WARNING: one or more of the samplers ran off to inifinity! Something must have gone wrong.")
         print('SAMPLE DONE')
         return Posterior.from_emcee(mcsampler, labels=problem.state_vector_labels, model=problem.likelihood)
 

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from typing import List
+import os
+import yaml
 import emcee
 import numpy as np
 import matplotlib.pyplot as plt
@@ -111,7 +113,7 @@ class Posterior:
             ax.title.set_text(prec)
             self.kde(prec, ax, **kwargs)
 
-    def boxplot(self, ax=None, confidence_interval=1.5):
+    def boxplot(self, ax=None, confidence_interval=(5,95)):
         """
         Plot the kernel density estimator
 
@@ -243,9 +245,15 @@ class Posterior:
         ax.legend()
         return(fig, ax)
 
-    def save(self, filename: str):
+    def save(self, foldername: str):
         """Save posterior to file."""
-        np.save(filename, self.logprec)
+        try:
+            os.mkdir(foldername)
+        except FileExistsError:
+            pass
+        np.save(os.path.join(foldername, 'samples.npy'), self.logprec)
+        with open(os.path.join(foldername, 'metadata.yaml'),'w') as f:
+            f.writelines(['precursor_labels:\n'] + [f' - "{label}"\n' for label in self.precursor_labels[:-1]])
 
     @classmethod
     def from_emcee(cls, emcee_sampler: emcee.EnsembleSampler, labels: List[str], model=None):
@@ -257,4 +265,14 @@ class Posterior:
         samples = np.load(filename)
         assert len(
             samples.shape) == 2, f'File {filename} wrong shape for posterior'
+        return Posterior(n_dimensions=samples.shape[1], samples=samples, labels=labels)
+    
+    @classmethod
+    def from_save(cls, foldername: str):
+        sample_filename = os.path.join(foldername, 'samples.npy')
+        samples = np.load(sample_filename)
+        metadata = yaml.safe_load(open(os.path.join(foldername, 'metadata.yaml'), 'r'))
+        labels = metadata.get('precursor_labels', [])
+        assert len(
+            samples.shape) == 2, f'File {sample_filename} wrong shape for posterior'
         return Posterior(n_dimensions=samples.shape[1], samples=samples, labels=labels)
