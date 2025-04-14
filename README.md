@@ -1,3 +1,5 @@
+NOTICE: <em>We have noticed that on some samples, repeated runs with the same options give different results. A fix for this will be coming soon, along with improved flexibility and output capabilities.</em>
+
 # Description
 oxidizable-pfas-precursor-inference is a command line tool to infer concentrations of oxidizable
 precursors aggregated by perfluorinated chain length (n) and manufacturing
