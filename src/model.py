@@ -14,6 +14,10 @@ MINVAL = -6
 BIGNEG = -1e32
 # might have to generate priors based on decided state vector?
 
+class UninformedLikelihood:
+    def __call__(self, params):
+        return 0.0
+
 class ModelLikelihood:
     forward_matrix: np.ndarray
     error_matrix: np.ndarray
@@ -21,6 +25,7 @@ class ModelLikelihood:
     error_obs: np.ndarray
     mdls: np.ndarray
     minval: float
+    product_names: List[str]
 
     def __init__(self, measurements: Measurements,
                         config: Config, minval=MINVAL):
@@ -45,6 +50,7 @@ class ModelLikelihood:
         self.error_obs = np.array([measurements.PFCAs[m].error for m in measured_pfcas])
         self.mdls = np.array([measurements.PFCAs[m].MDL for m in measured_pfcas])
         self.minval = minval
+        self.product_names = measured_pfcas
 
     def __call__(self, params: np.ndarray) -> float:
         """Log-probability for set of parameter values."""

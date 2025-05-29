@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Protocol, Tuple
 from .core import Problem, UniformBounded
+from .model import UninformedLikelihood
 from .posterior import Posterior
 
 import numpy as np
@@ -116,7 +117,8 @@ class MCMCSampler:
     max_steps: int = 150000
     default_alpha: float = 0.3
 
-    def sample(self, problem: Problem, alpha: float = -1, movetype='DESnooker') -> Posterior:
+    def sample(self, problem: Problem, alpha: float = -1, movetype='DESnooker',
+               nprune_min = 100) -> Posterior:
         """For a given inference Problem, sample the posterior."""
         if alpha <= 0.0:
             alpha = self.default_alpha
@@ -128,6 +130,11 @@ class MCMCSampler:
             Mover = GaussianMove
         else:
             raise ValueError(f"movetype '{movetype} unknown...")
+        prior_mcsampler = emcee.EnsembleSampler(total_walkers,
+                                          problem.n_dimensions,
+                                          problem.prior,
+                                          moves=[(Mover(alpha),
+                                                  1.0)])
         mcsampler = emcee.EnsembleSampler(total_walkers,
                                           problem.n_dimensions,
                                           problem.posterior,
@@ -138,14 +145,22 @@ class MCMCSampler:
                               problem.n_dimensions)\
             * (MAXVAL-MINVAL)+MINVAL
 
+        print('Sampling prior.')
+        state = prior_mcsampler.run_mcmc(init, self.Nincrement*5)
+        prior_mcsampler.reset()
+        state = prior_mcsampler.run_mcmc(
+                state, self.Nincrement*5, skip_initial_state_check=True)
+        
+        
         state = mcsampler.run_mcmc(init, self.Nincrement*5)
         mcsampler.reset()
-        S = 1
         state = mcsampler.run_mcmc(
             state, self.Nincrement, skip_initial_state_check=True)
         f_accept = np.mean(mcsampler.acceptance_fraction)
+        
         print(
             f'acceptance rate is {np.mean(f_accept):.2f} when alpha is {alpha}')
+        
         print(f'Sampling posterior in {self.Nincrement}-iteration increments.')
         WEGOOD = False
         count = 0
@@ -165,11 +180,13 @@ class MCMCSampler:
                     WEGOOD = False
                 else:
                     WEGOOD = True
+                    nprune = mtac
             except AutocorrError:
                 mtac = 'unavailable'
                 WEGOOD = False
             print(f'After {count} iterations, autocorr time: {mtac}')
         WEGOOD = False
+        nprune = nprune_min
         while (not WEGOOD) and (count < self.max_steps):
             if Nindep < prev_Nindep:
                 print("WARNING: Number of independent samples decreasing!")
@@ -195,8 +212,12 @@ class MCMCSampler:
             print("WARNING: maximum number of iterations reached! Terminating. Something might have gone wrong.")
         if np.isinf(np.mean(mcsampler.flatchain)):
             print("WARNING: one or more of the samplers ran off to inifinity! Something must have gone wrong.")
+        
         print('SAMPLE DONE')
-        return Posterior.from_emcee(mcsampler, labels=problem.state_vector_labels, model=problem.likelihood)
+        # return mcsampler
+        return Posterior.from_emcee(mcsampler, labels=problem.state_vector_labels, model=problem.likelihood,
+                                    nprune=max(nprune_min,nprune), product_names=problem.likelihood.product_names,
+                                    emcee_sampler_prior=prior_mcsampler, nprune_prior=10)
 
     def tune_alpha(self, problem: Problem, tuner: Tuner, 
                     movetype='DESnooker') -> float:
