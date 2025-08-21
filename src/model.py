@@ -82,14 +82,14 @@ class ModelLikelihood:
                 if obsmin <= log_pfcas[i] < obsmax:
                     logprob += 0
                 elif log_pfcas[i] > obsmax:
-                    logprob += -((log_pfcas[i] - obsmax) / toterr[i])**2
+                    logprob += -0.5*((log_pfcas[i] - obsmax) / toterr[i])**2 - 0.5*np.log(2*np.pi*toterr[i]**2)
                 else:
                     # logprob += BIGNEG
                     # give an on-ramp to reasonable values
-                    logprob += -((log_pfcas[i] - obsmin) / toterr[i] /100)**2
+                    logprob += -((log_pfcas[i] - obsmin) / toterr[i] /100)**2 
             else:
                 obs = np.log10(b[i])
-                logprob += -((log_pfcas[i] - obs) / toterr[i])**2
+                logprob += -0.5*((log_pfcas[i] - obs) / toterr[i])**2 - 0.5*np.log(2*np.pi*toterr[i]**2)
 
         return logprob
 

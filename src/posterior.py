@@ -17,24 +17,6 @@ class Posterior:
     prior_predictive_df: pd.DataFrame
     measurements_df: pd.DataFrame
     
-    # def __init__(self, n_dimensions: int, samples: np.ndarray, labels: List[str] =[], model = None, 
-    #              nprune=1, product_names: List[str] = None):
-        # self.n_dimensions = n_dimensions
-        # self.logprec = samples[::nprune,:-1]
-        # self.model = model
-        # assert len(labels) == self.logprec.shape[1], f'Specify {self.logprec.shape[1]} precursor labels'
-        # self.logprec_df = pd.DataFrame(self.logprec, columns=labels)
-        # prec = 10**self.logprec
-        # self.prec_df = pd.DataFrame(prec, columns=labels)
-        # #add a column for the sum of all precursors in the last column:
-        # self.prec = np.append(prec, np.sum(prec, axis = 1).reshape(len(prec), 1), axis = 1)
-        # self.prec_df['Total precursors'] = np.sum(prec, axis = 1)
-        # self.logprec = np.append(self.logprec, np.log10(np.sum(prec, axis = 1).reshape(len(prec), 1)), axis = 1) 
-        # self.logprec_df['Total precursors'] = np.log10(np.sum(prec, axis = 1))
-        # self.precursor_labels = labels + ['Total precursors']
-        # posterior_predictive = self._posterior_predictive()
-        # self.posterior_predictive_df = pd.DataFrame(posterior_predictive, columns=product_names)
-
     def remove_burnin(self, burnin: int):
         """
         Remove the burnin samples from the posterior
@@ -290,42 +272,6 @@ class Posterior:
         plt.semilogy()
         plt.legend(bbox_to_anchor=(1.2, 1.01))
             
-    
-    # def posterior_predictive(self, top_delta, n_posterior):
-    #     """
-    #     Plot posterior predictive against the measured delta of the TOP assay
-
-    #         Parameters:
-    #             top_delta (array) : measured delta in the TOP assay
-    #             n_posterior (int) : number of samples from the posterior to compare
-    #             infered_columns (list) : column indices of inferred columns (see makeA.py for indices)
-    #             measured_pfca (list) : row indices of the measured PFCA (see makeA.py for indices)
-    #         Returns:
-    #             fig, ax (matplotlib figure) : figure of the posterior predictive
-    #     """
-
-
-    #     assert self.model is not None, 'Forward model unavailable for posterior predictive'
-    #     A, U = self.model.forward_matrix, self.model.error_matrix
-    
-
-    #     random_indices = np.random.choice(range(self.n_dimensions), size=n_posterior)
-    #     post_predictive = []
-    #     for i in random_indices:
-    #         post_predictive.append(np.dot(A, self.prec[i, :-1]))
-
-    #     fig, ax = plt.subplots()
-    #     for idx, pp in enumerate(post_predictive):
-    #         if idx == 0:
-    #             ax.scatter(range(len(top_delta)), pp, label = 'posterior predictive', color = 'k', alpha = 0.5)
-    #         else:
-    #             ax.scatter(range(len(top_delta)), pp, color = 'k', alpha = 0.5)
-    #     ax.scatter(range(len(top_delta)), top_delta, label = 'measured delta', color = 'red')
-    #     ax.set_xticks(range(len(top_delta)))
-    #     ax.set_ylabel('Concentration')
-    #     ax.legend()
-    #     return(fig, ax)
-
     def save(self, foldername: str):
         """Save posterior info to files."""
         try:
@@ -338,10 +284,7 @@ class Posterior:
         with open(os.path.join(foldername, 'metadata.yaml'),'w') as f:
             f.writelines(['run at: ' + str(pd.Timestamp.now()) + '\n'])
         if self.prior_predictive_df is not None:
-            self.prior_predictive_df.to_csv(os.path.join(foldername, f'prior_predictive.csv'), index=False)
-        # np.save(os.path.join(foldername, 'samples.npy'), self.logprec)
-        # with open(os.path.join(foldername, 'metadata.yaml'),'w') as f:
-        #     f.writelines(['precursor_labels:\n'] + [f' - "{label}"\n' for label in self.precursor_labels[:-1]])
+            self.prior_predictive_df.to_csv(os.path.join(foldername, 'prior_predictive.csv'), index=False)
 
     @classmethod
     def from_emcee(cls, emcee_sampler: emcee.EnsembleSampler, labels: List[str], model=None, nprune=1, product_names: List[str] = None,
@@ -359,7 +302,6 @@ class Posterior:
         prec_df['Total precursors'] = np.sum(prec, axis = 1)
         logprec = np.append(logprec, np.log10(np.sum(prec, axis = 1).reshape(len(prec), 1)), axis = 1) 
         logprec_df['Total precursors'] = np.log10(np.sum(prec, axis = 1))
-        precursor_labels = labels + ['Total precursors']
         posterior_predictive = np.array([np.dot(model.forward_matrix, prec[i,:-1]) for i in range(len(prec))])
         posterior_predictive_df = pd.DataFrame(posterior_predictive, columns=product_names)
         measurements_dict = {'name':[],'value':[],'error':[],'MDL':[]}
@@ -386,13 +328,6 @@ class Posterior:
                    prior_predictive_df=prior_predictive_df,
                    measurements_df = measurements_df)
 
-    # @classmethod
-    # def from_npy(cls, filename: str, labels):
-    #     samples = np.load(filename)
-    #     assert len(
-    #         samples.shape) == 2, f'File {filename} wrong shape for posterior'
-    #     return Posterior(n_dimensions=samples.shape[1], samples=samples, labels=labels)
-    
     @classmethod
     def from_saved(cls, foldername: str):
         dataframes = {key: pd.read_csv(os.path.join(foldername, f'{key}.csv')) for key in 
@@ -409,10 +344,3 @@ class Posterior:
             prior_predictive_df=prior_predictive,
             measurements_df=dataframes['observations']
         )
-        # sample_filename = os.path.join(foldername, 'samples.npy')
-        # samples = np.load(sample_filename)
-        # metadata = yaml.safe_load(open(os.path.join(foldername, 'metadata.yaml'), 'r'))
-        # labels = metadata.get('precursor_labels', [])
-        # assert len(
-        #     samples.shape) == 2, f'File {sample_filename} wrong shape for posterior'
-        # return Posterior(n_dimensions=samples.shape[1], samples=samples, labels=labels)

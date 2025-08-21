@@ -3,7 +3,7 @@ from typing import Optional, Protocol, Tuple
 from .core import Problem, UniformBounded
 from .model import UninformedLikelihood
 from .posterior import Posterior
-
+from .convergence import StopCondition
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -11,16 +11,6 @@ import emcee
 from emcee.autocorr import AutocorrError
 from emcee.moves import DESnookerMove, GaussianMove
 
-
-
-# class Tuner(Protocol):
-#     """Form of tuner objects."""
-
-#     def is_tuned(self):
-#         """Is the tuning finished?"""
-
-#     def get_trial(self):
-#         """What parameter value to try next?"""
 
 class Tuner(object):
     """Decide which stretch parameter is best to use.
@@ -123,6 +113,19 @@ class MCMCSampler:
         if alpha <= 0.0:
             alpha = self.default_alpha
 
+        prior_stop_condition = StopCondition(
+            rhat_threshold=1.05,
+            iterations_threshold=None,
+            max_iterations=100000,
+            ESS_threshold=500
+        )
+        stop_condition = StopCondition(
+            rhat_threshold=1.05,
+            iterations_threshold=None,
+            max_iterations=self.max_steps,
+            ESS_threshold=self.target_effective_steps
+        )
+
         total_walkers = self.Nwalkers*problem.n_dimensions
         if movetype in ['DESnooker']:
             Mover = DESnookerMove
@@ -148,76 +151,33 @@ class MCMCSampler:
         print('Sampling prior.')
         state = prior_mcsampler.run_mcmc(init, self.Nincrement*5)
         prior_mcsampler.reset()
-        state = prior_mcsampler.run_mcmc(
-                state, self.Nincrement*5, skip_initial_state_check=True)
-        
-        
+        while not prior_stop_condition:
+            state = prior_mcsampler.run_mcmc(
+                    state, self.Nincrement, skip_initial_state_check=True)
+            rhat, prior_ess = prior_stop_condition.update(
+                prior_mcsampler.get_chain(), prior_mcsampler.iteration
+            )
+            print(
+                f"After {prior_mcsampler.iteration} iterations, rhat: {rhat:.3f}, ess: {prior_ess:.1f}"
+            )
+        print('Sampling posterior.')
         state = mcsampler.run_mcmc(init, self.Nincrement*5)
         mcsampler.reset()
-        state = mcsampler.run_mcmc(
-            state, self.Nincrement, skip_initial_state_check=True)
-        f_accept = np.mean(mcsampler.acceptance_fraction)
-        
-        print(
-            f'acceptance rate is {np.mean(f_accept):.2f} when alpha is {alpha}')
-        
-        print(f'Sampling posterior in {self.Nincrement}-iteration increments.')
-        WEGOOD = False
-        count = 0
-        prev_Nindep = 0
-        Nindep = 1
-        mcsampler.reset()
-        while (not WEGOOD) and (count < self.max_steps):
+        while not stop_condition:
             state = mcsampler.run_mcmc(
-                state, self.Nincrement, skip_initial_state_check=True)
-            f_accept = np.mean(mcsampler.acceptance_fraction)
-            count += self.Nincrement
-            try:
-                tac = mcsampler.get_autocorr_time()
-                # go by the slowest-sampling dim or mean??
-                mtac = np.nanmax(tac)
-                if np.isnan(mtac):
-                    WEGOOD = False
-                else:
-                    WEGOOD = True
-                    nprune = mtac
-            except AutocorrError:
-                mtac = 'unavailable'
-                WEGOOD = False
-            print(f'After {count} iterations, autocorr time: {mtac}')
-        WEGOOD = False
-        nprune = nprune_min
-        while (not WEGOOD) and (count < self.max_steps):
-            if Nindep < prev_Nindep:
-                print("WARNING: Number of independent samples decreasing!")
-
-            state = mcsampler.run_mcmc(
-                state, self.Nincrement, skip_initial_state_check=True)
-            f_accept = np.mean(mcsampler.acceptance_fraction)
-            count += self.Nincrement
-            try:
-                tac = mcsampler.get_autocorr_time()
-                mtac = np.nanmax(tac)
-            except AutocorrError:
-                pass
-            prev_Nindep = Nindep
-            Nindep = count * total_walkers / mtac
-            print(
-                f'After {count} iterations, effective number of samples:\
-                    {int(Nindep)}'
+                    state, self.Nincrement, skip_initial_state_check=True)
+            rhat, ess = stop_condition.update(
+                mcsampler.get_chain(), mcsampler.iteration
             )
-            if Nindep > self.target_effective_steps:
-                WEGOOD = True
-        if self.max_steps <= count:
-            print("WARNING: maximum number of iterations reached! Terminating. Something might have gone wrong.")
-        if np.isinf(np.mean(mcsampler.flatchain)):
-            print("WARNING: one or more of the samplers ran off to inifinity! Something must have gone wrong.")
+            print(
+                f"After {mcsampler.iteration} iterations, rhat: {rhat:3f}, ess: {ess:.1f}"
+            )
         
         print('SAMPLE DONE')
-        # return mcsampler
+        prior_ess, ess = max(prior_ess, 1), max(ess, 1)
         return Posterior.from_emcee(mcsampler, labels=problem.state_vector_labels, model=problem.likelihood,
-                                    nprune=max(nprune_min,nprune), product_names=problem.likelihood.product_names,
-                                    emcee_sampler_prior=prior_mcsampler, nprune_prior=10)
+                                    nprune=int(max(nprune_min,mcsampler.iteration*total_walkers/ess)), product_names=problem.likelihood.product_names,
+                                    emcee_sampler_prior=prior_mcsampler, nprune_prior=int(max(10,prior_mcsampler.iteration*total_walkers/prior_ess)))
 
     def tune_alpha(self, problem: Problem, tuner: Tuner, 
                     movetype='DESnooker') -> float:
