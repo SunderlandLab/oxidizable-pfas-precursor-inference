@@ -1,4 +1,4 @@
-NOTICE: <em>We have noticed that on some samples, repeated runs with the same options give different results. A fix for this will be coming soon, along with improved flexibility and output capabilities.</em>
+NOTICE: <em>We are transitioning to a more user-friendly and interactive formulation of this code. The updated routines and demonstration (see demo_workbook.ipynb) fix some undesirable behavior under some conditions, help to problem solve common issues, and make understanding your inference easier. Presently, we are working on transitioning previously published sample inferences to the new format for archival consistency. If you have any questions or issues, please let us know (thackray@seas.harvard.edu) </em>
 
 # Description
 oxidizable-pfas-precursor-inference is a command line tool to infer concentrations of oxidizable
