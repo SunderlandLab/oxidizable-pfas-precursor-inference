@@ -8,8 +8,9 @@ Bridger Ruyle (bruyle@g.harvard.edu)
 import argparse
 import numpy as np
 import pandas as pd
-from sampling import sample_measurement
-from lib import Config
+from src.measurements import Measurements
+from src.run import sample_measurement
+from src.config import Config
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -37,6 +38,9 @@ parser.add_argument('-m', '--max-steps', dest='MAX_STEPS',
 parser.add_argument('-D', '--max-depth', dest='MAX_DEPTH',
                     action='store', default=3, type=int,
                     help='Maximum depth of windowing in sampler tuning.')
+parser.add_argument('-a', '--alpha', dest='alpha',
+                    action='store', default=-1, type=float,
+                    help='Alpha for sampler.')
 
 args = parser.parse_args()
 if args.IEND is None:
@@ -51,19 +55,21 @@ names = df['Sample'].values
 for bi in range(args.ISTART, args.IEND+1):
     print('Calculating for sample ' + df['Sample'][bi])
 
-    config = Config(df.iloc[bi])
+    measurements = Measurements.from_row(df.iloc[bi])
+    config = Config.from_yaml(measurements.associated_config)
     prior_name = config.prior_name
-    print(config)
+    # print(config)
 
     # Run MCMC ensemble to sample posterior
-    sampler = sample_measurement(config,
-                                 prior=prior_name,
-                                 Nincrement=1000,
+    posterior = sample_measurement(config, measurements,
+                                 prior_name=prior_name,
+                                 Nincrement=2500,
                                  TARGET_EFFECTIVE_STEPS=args.TARGET,
                                  MAX_STEPS=args.MAX_STEPS,
-                                 MAX_DEPTH=args.MAX_DEPTH)
+                                 MAX_DEPTH=args.MAX_DEPTH,
+                                 alpha=args.alpha)
 
     # Save sampling output to disk
-    trajectory = sampler.flatchain[:, :-1]
+    trajectory = posterior.samples[:, :-1]
     outfile = f'{args.OUTFILE_STEM}{bi}'
     np.save(outfile, trajectory)

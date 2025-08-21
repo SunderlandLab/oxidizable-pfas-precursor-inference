@@ -7,9 +7,7 @@ possible_precursors:
  - "C6 ECF"
  - "C7 ECF"
  - "C8 ECF"
-prior_name: "unknown"
-jeffreys_variance: 5
-
+prior_name: "AFFF_impacted_archival"
 # TOP assay yields of representative n:2 FT and ECF precursors
 # reported in the literature
 # Average of n:2 FTs reported in Houtz and Sedlak Table 1, 2012
