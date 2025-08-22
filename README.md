@@ -1,16 +1,15 @@
 NOTICE: <em>We are transitioning to a more user-friendly and interactive formulation of this code. The updated routines and demonstration (see [demo_workbook.ipynb](./demo_workbook.ipynb)) fix some undesirable behavior under some conditions, help to problem solve common issues, and make understanding your inference easier. Presently, we are working on transitioning previously published sample inferences to the new format for archival consistency. If you have any questions or issues, please let us know (thackray@seas.harvard.edu) </em>
 
 # Description
-oxidizable-pfas-precursor-inference is a command line tool to infer concentrations of oxidizable
+oxidizable-pfas-precursor-inference is a tool to infer concentrations of oxidizable
 precursors aggregated by perfluorinated chain length (n) and manufacturing
 origin (electrochemical fluorination: ECF vs fluorotelomerization: FT) based
 on changes in perfluoroalkyl carboxylates (PFCA) in the total oxidizable
 precursor (TOP) assay.
 
-infer_precursors.py can be used to analyze TOP assay results for any aqueous
+The workflow found in [demo_workbook.ipynb](demo_workbook.ipynb) can be used to analyze TOP assay results for any aqueous
 sample with the appropriate choice of a prior. This package
-provides several built in priors for AFFF samples, AFFF impacted samples, and
-samples impacted by unknown sources. In the "config" fold, you can find two
+provides several built in priors for samples described below. In the "config" folder, you can find two
 versions of each prior (with either uniform uninformed priors or Jeffrey's
 uninformed priors for precursor chain lengths without more information
 available).
@@ -41,28 +40,6 @@ presented in [Ruyle et al. 2021a](http://dx.doi.org/10.1021/acs.estlett.0c00798)
 ### Citation for code:
 
 Ruyle, B. J.; Thackray, C. P.; McCord, J. P.; Strynar, M. J.; Mauge-Lewis, K. A.; Fenton, S. E.; Sunderland, E. M. Reconstructing the Composition of Per- and Polyfluoroalkyl Substances (PFAS) in Contemporary Aqueous Film Forming Foams. Environ. Sci. Technol. Lett. 2021, 8(1), 59-65. [https://doi.org/10.1021/acs.estlett.0c00798](http://dx.doi.org/10.1021/acs.estlett.0c00798).
-
-# Command line options
-usage: `python infer_precursors.py [-h] [-d FILENAME] [-o OUTFILE_STEM] [-t TARGET] [-m MAX_STEPS] [-D MAX_DEPTH] istart [iend]`
-
-Sample posterior for precursors.
-
-positional arguments:  
-&nbsp;&nbsp;&nbsp;&nbsp;`istart`&nbsp;&nbsp;&nbsp;&nbsp;`first sample index`  
-&nbsp;&nbsp;&nbsp;&nbsp;`iend`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`last sample index`
-
-optional arguments:
-  `-h, --help`            show this help message and exit  
-  `-d FILENAME, --datafile FILENAME`
-                        location of measurements file  
-  `-o OUTFILE_STEM, --outfile OUTFILE_STEM`
-                        Stem for output filename. Will gain suffix N (sample index)  
-  `-t TARGET, --target-steps TARGET`
-                        Effective sample size to attain  
-  `-m MAX_STEPS, --max-steps MAX_STEPS`
-                        Maximum number of steps before quiting.  
-  `-D MAX_DEPTH, --max-depth MAX_DEPTH`
-                        Maximum depth of windowing in sampler tuning.  
 
 # Input format
 All measurement data should be contained in a csv file. There are two acceptable
@@ -101,13 +78,11 @@ If a concentration was measured below the MDL, you can either fill it with the
 value of the MDL or any number between 0 and the MDL.
 
 # Output
-The output samples are saved as binary format specified by Numpy (.npy)
-and contain values of log10 of the precursor concentrations. Precursors in the
-output file are index in python by column according to the order specified in
-lines 42-43 of lib.py
+The output samples are saved as a collection of tables in csv format
+and contain samples of the posterior precursor concentrations and log10 precursor concentrations, prior precursor concentrations, along with the posterior and prior predictive distributions. This output can be read by your data analysis and plotting pipeline of choice (e.g. pandas + seaborn).
 
 # Example data
-Three datasets are provided as examples
+Three datasets are provided as examples <em>Note: lining up the priors used in these papers with the current code is in progress.</em>
 * 'Ruyle_Houts_AFFF_stocks.csv' which contains TOP assay data from ECF and fluorotelomer AFFF
 reported by [Ruyle et al. 2021a](http://dx.doi.org/10.1021/acs.estlett.0c00798) and
 [Houtz et al. 2013](https://doi.org/10.1021/es4018877).

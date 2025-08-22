@@ -14,62 +14,62 @@ from src.config import Config
 import warnings
 
 warnings.filterwarnings('ignore')
-
+print("The preferred method for precursor inference is now the interactive workflow in the Jupyter notebook `demo_workbook.ipynb`. Please see notebook for details.")
 # Command line arguments
-parser = argparse.ArgumentParser(
-    description='Sample posterior for precursors.')
-parser.add_argument('ISTART', metavar='istart', type=int,
-                    help='first sample index (first index is 0)', default=0)
-parser.add_argument('IEND', metavar='iend', type=int, nargs='?',
-                    help='last sample index (first index is 0)', default=None)
-parser.add_argument('-d', '--datafile', dest='FILENAME', action='store',
-                    default='data/measurements.csv',
-                    help='location of measurements file')
-parser.add_argument('-o', '--outfile', dest='OUTFILE_STEM', action='store',
-                    default='infer_out/mcmcout_',
-                    help='Stem for output filename. Will gain suffix \
-                    N (sample index)')
-parser.add_argument('-t', '--target-steps', dest='TARGET',
-                    action='store', default=2500, type=int,
-                    help='Effective sample size to attain')
-parser.add_argument('-m', '--max-steps', dest='MAX_STEPS',
-                    action='store', default=50000, type=int,
-                    help='Maximum number of steps before quiting.')
-parser.add_argument('-D', '--max-depth', dest='MAX_DEPTH',
-                    action='store', default=3, type=int,
-                    help='Maximum depth of windowing in sampler tuning.')
-parser.add_argument('-a', '--alpha', dest='alpha',
-                    action='store', default=-1, type=float,
-                    help='Alpha for sampler.')
+# parser = argparse.ArgumentParser(
+#     description='Sample posterior for precursors.')
+# parser.add_argument('ISTART', metavar='istart', type=int,
+#                     help='first sample index (first index is 0)', default=0)
+# parser.add_argument('IEND', metavar='iend', type=int, nargs='?',
+#                     help='last sample index (first index is 0)', default=None)
+# parser.add_argument('-d', '--datafile', dest='FILENAME', action='store',
+#                     default='data/measurements.csv',
+#                     help='location of measurements file')
+# parser.add_argument('-o', '--outfile', dest='OUTFILE_STEM', action='store',
+#                     default='infer_out/mcmcout_',
+#                     help='Stem for output filename. Will gain suffix \
+#                     N (sample index)')
+# parser.add_argument('-t', '--target-steps', dest='TARGET',
+#                     action='store', default=2500, type=int,
+#                     help='Effective sample size to attain')
+# parser.add_argument('-m', '--max-steps', dest='MAX_STEPS',
+#                     action='store', default=50000, type=int,
+#                     help='Maximum number of steps before quiting.')
+# parser.add_argument('-D', '--max-depth', dest='MAX_DEPTH',
+#                     action='store', default=3, type=int,
+#                     help='Maximum depth of windowing in sampler tuning.')
+# parser.add_argument('-a', '--alpha', dest='alpha',
+#                     action='store', default=-1, type=float,
+#                     help='Alpha for sampler.')
 
-args = parser.parse_args()
-if args.IEND is None:
-    args.IEND = args.ISTART
+# args = parser.parse_args()
+# if args.IEND is None:
+#     args.IEND = args.ISTART
 
-# Load input data from disk
-df = pd.read_csv(args.FILENAME)
-names = df['Sample'].values
+# # Load input data from disk
+# df = pd.read_csv(args.FILENAME)
+# names = df['Sample'].values
 
 
-# Do sampling for requested measurements
-for bi in range(args.ISTART, args.IEND+1):
-    print('Calculating for sample ' + df['Sample'][bi])
+# # Do sampling for requested measurements
+# for bi in range(args.ISTART, args.IEND+1):
+#     print('Calculating for sample ' + df['Sample'][bi])
 
-    measurements = Measurements.from_row(df.iloc[bi])
-    config = Config.from_yaml(measurements.associated_config)
-    prior_name = config.prior_name
-    # print(config)
+#     measurements = Measurements.from_row(df.iloc[bi])
+#     config = Config.from_yaml(measurements.associated_config)
+#     prior_name = config.prior_name
+#     # print(config)
 
-    # Run MCMC ensemble to sample posterior
-    posterior = sample_measurement(config, measurements,
-                                 prior_name=prior_name,
-                                 Nincrement=2500,
-                                 TARGET_EFFECTIVE_STEPS=args.TARGET,
-                                 MAX_STEPS=args.MAX_STEPS,
-                                 MAX_DEPTH=args.MAX_DEPTH,
-                                 alpha=args.alpha)
+#     # Run MCMC ensemble to sample posterior
+#     posterior = sample_measurement(config, measurements,
+#                                  prior_name=prior_name,
+#                                  Nincrement=2500,
+#                                  TARGET_EFFECTIVE_STEPS=args.TARGET,
+#                                  MAX_STEPS=args.MAX_STEPS,
+#                                  MAX_DEPTH=args.MAX_DEPTH,
+#                                  alpha=args.alpha)
 
-    # Save sampling output to disk
-    trajectory = posterior.samples[:, :-1]
-    outfile = f'{args.OUTFILE_STEM}{bi}'
-    np.save(outfile, trajectory)
+#     # Save sampling output to disk
+#     trajectory = posterior.samples[:, :-1]
+#     outfile = f'{args.OUTFILE_STEM}{bi}'
+#     np.save(outfile, trajectory)
